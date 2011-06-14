@@ -33,7 +33,9 @@
     return;
   }
   
-  [[SJAPIRequest sharedAPIRequest] sendRequestToEndpoint:@"header_names/" + tableName callback:function( js ) 
+  var mysqlQuery = @"SHOW COLUMNS FROM " + tableName;
+  
+  [[SJMySQLConnnection sharedConnection] getColumnForQuery:mysqlQuery callback:function( columns ) 
   {
   	if(scrollview) {
       [self setTbrows:[CPArray array]];
@@ -43,7 +45,7 @@
     }
     
     if (!scrollview) {
-      headerNames = [[CPArray alloc] initWithArray:js.header_names];
+      headerNames = [[CPArray alloc] initWithArray:columns];
       scrollview = [self createTableViewForView:[self view] headerNames:[self headerNames]];
       
       var rect = [scrollview frame];
@@ -55,9 +57,11 @@
       [self addBottomBarWithRect:rect];
       
       // We need to get the rows for the table, lets do that here
-      [[SJAPIRequest sharedAPIRequest] sendRequestToEndpoint:@"rows/" + [self tableName] callback:function( js ) 
+      var mysqlQuery = @"SELECT * FROM " + tableName + " LIMIT 0, 100";
+      
+      [[SJMySQLConnnection sharedConnection] getResultsForQuery:mysqlQuery callback:function( results ) 
   	  {
-  	  	[self handleTableRowsResponse:js];
+  	  	[self handleTableRowsResponse:results];
       }];
     }
   
